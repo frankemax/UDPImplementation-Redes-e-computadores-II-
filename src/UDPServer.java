@@ -12,6 +12,8 @@ class UDPServer {
 
         byte[] receiveData = new byte[512];
         byte[] sendData = new byte[1024];
+        FileOutputStream f1 = new FileOutputStream(new File("fileUDPOut.txt"), true /* append = true */);
+
 
         while (true) {
             // declara o pacote a ser recebido
@@ -26,9 +28,8 @@ class UDPServer {
             InetAddress IPAddress = receivePacket.getAddress();
             int port = receivePacket.getPort();
 
-            File myFile = new File("fileUDPOut.txt");
-            PrintWriter printWriter = new PrintWriter(myFile);
-            String s = new String();
+            PrintWriter printWriter = new PrintWriter(f1);
+            String s;
             s = sentence;
 
 
@@ -41,8 +42,8 @@ class UDPServer {
             System.out.println("Mensagem recebida: " + sentence);
 
 
-            String capitalizedSentence = "ok";
-            sendData = capitalizedSentence.getBytes();
+
+            sendData = "ok".getBytes();
             DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
             serverSocket.send(sendPacket);
             //serverSocket.close();
