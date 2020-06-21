@@ -43,7 +43,7 @@ class UDPServer {
 
 
 
-            sendData = "ok".getBytes();
+            sendData = ("ok"+sentence.charAt(0)+sentence.charAt(1)).getBytes();
             DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
             serverSocket.send(sendPacket);
             //serverSocket.close();
