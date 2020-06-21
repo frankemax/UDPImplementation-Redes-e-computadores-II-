@@ -10,7 +10,7 @@ class UDPServer {
         // cria socket do servidor com a porta 9876
         DatagramSocket serverSocket = new DatagramSocket(9876);
 
-        byte[] receiveData = new byte[1024];
+        byte[] receiveData = new byte[512];
 
         while (true) {
             // declara o pacote a ser recebido
