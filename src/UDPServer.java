@@ -11,6 +11,7 @@ class UDPServer {
         DatagramSocket serverSocket = new DatagramSocket(9876);
 
         byte[] receiveData = new byte[512];
+        byte[] sendData = new byte[1024];
 
         while (true) {
             // declara o pacote a ser recebido
@@ -28,20 +29,22 @@ class UDPServer {
             File myFile = new File("fileUDPOut.txt");
             PrintWriter printWriter = new PrintWriter(myFile);
             String s = new String();
-            s=sentence;
-
-
+            s = sentence;
 
 
             // nao sei como fazer aqui
-            s.replaceAll("\\00","");
+            s.replaceAll("\\00", "");
             printWriter.print(s);
             printWriter.close();
 
-            // ta colocando no arquivo um monte de \00
-            // mas o socket ta funcionando
 
             System.out.println("Mensagem recebida: " + sentence);
+
+
+            String capitalizedSentence = "ok";
+            sendData = capitalizedSentence.getBytes();
+            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
+            serverSocket.send(sendPacket);
             //serverSocket.close();
         }
     }

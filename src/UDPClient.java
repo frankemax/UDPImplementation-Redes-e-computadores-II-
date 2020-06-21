@@ -9,15 +9,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class UDPClient {
+    private static DatagramSocket clientSocket;
 
     public static void main(String args[]) throws Exception {
         readFile("file.txt");
+        sendDataInit();
 
-
-        for (int i=0;i< DataPackage.getInstance().getSplittedData().size();i++){
-            sendData(DataPackage.getInstance().getSplittedData().get(i).getData());
-
-        }
 
     }
 
@@ -29,8 +26,9 @@ public class UDPClient {
     }
 
     public static void sendData(byte[] data) throws Exception {
+
         // declara socket cliente
-        DatagramSocket clientSocket = new DatagramSocket();
+        clientSocket = new DatagramSocket();
 
         // obtem endere�o IP do servidor com o DNS
         InetAddress IPAddress = InetAddress.getByName("localhost");
@@ -41,8 +39,28 @@ public class UDPClient {
         //envia o pacote
         clientSocket.send(sendPacket);
 
+        handleReceive();
+
         // fecha o cliente
         clientSocket.close();
     }
+
+    public static void sendDataInit() throws Exception {
+        for (int i = 0; i < DataPackage.getInstance().getSplittedData().size(); i++) {
+            sendData(DataPackage.getInstance().getSplittedData().get(i).getData());
+        }
+    }
+
+    public static void handleReceive() throws Exception {
+        byte[] receiveData = new byte[1024];
+        DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+        clientSocket.receive(receivePacket);
+        String modifiedSentence = new String(receivePacket.getData());
+        System.out.println("FROM SERVER:" + modifiedSentence);
+
+    }
+
+
+
 
 }

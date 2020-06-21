@@ -6,12 +6,12 @@ public class DataPackage {
     private ArrayList<miniDataPackage> splittedData;
 
 
-    private DataPackage(){
+    private DataPackage() {
 
     }
 
-    public static DataPackage getInstance(){
-        if (instance == null){
+    public static DataPackage getInstance() {
+        if (instance == null) {
             instance = new DataPackage();
         }
         return instance;
@@ -29,18 +29,18 @@ public class DataPackage {
         this.data = data;
     }
 
-    public void splitData(){
+    public void splitData() {
         ArrayList<miniDataPackage> splittedData = new ArrayList<>();
-        byte[] pedaco= new byte[512];
+        byte[] pedaco = new byte[512];
         int aux = 0;
 
-        for(int i= 0 ; i< data.length ; i++){
-            pedaco[aux]= this.data[i];
+        for (int i = 0; i < data.length; i++) {
+            pedaco[aux] = this.data[i];
             aux++;
-            if(i%511==0 && i!=0){
+            if (i % 511 == 0 && i != 0) {
                 splittedData.add(new miniDataPackage(pedaco));
                 pedaco = new byte[512];
-                aux=0;
+                aux = 0;
             }
         }
 
