@@ -1,12 +1,9 @@
-
-// L� uma linha do teclado
-// Envia o pacote (linha digitada) ao servidor
-
 import java.io.*; // classes para input e output streams e
 import java.net.*;// DatagramaSocket,InetAddress,DatagramaPacket
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 
 public class UDPClient {
     private static DatagramSocket clientSocket;
@@ -39,7 +36,8 @@ public class UDPClient {
         //envia o pacote
         clientSocket.send(sendPacket);
 
-        handleReceive();
+        String UltimoACK = handleReceive();
+
 
         // fecha o cliente
         clientSocket.close();
@@ -48,15 +46,24 @@ public class UDPClient {
     public static void sendDataInit() throws Exception {
         for (int i = 0; i < DataPackage.getInstance().getSplittedData().size(); i++) {
             sendData(DataPackage.getInstance().getSplittedData().get(i).getData());
+
         }
     }
 
-    public static void handleReceive() throws Exception {
-        byte[] receiveData = new byte[1024];
+    public static String handleReceive() throws Exception {
+        byte[] receiveData = new byte[512];
         DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
         clientSocket.receive(receivePacket);
         String modifiedSentence = new String(receivePacket.getData());
-        System.out.println("FROM SERVER:" + modifiedSentence);
+
+        System.out.println("Recebi o ACK:" + modifiedSentence);
+
+        return modifiedSentence;
+
+    }
+
+    public static void handleACK() throws Exception{
+
 
     }
 

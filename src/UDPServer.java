@@ -5,48 +5,67 @@
 import java.io.*;
 import java.net.*;
 
-class UDPServer {
+public class UDPServer {
+    private static DatagramPacket receivePacket;
+    private static DatagramSocket serverSocket;
+    private String lastACK;
+
     public static void main(String args[]) throws Exception {
         // cria socket do servidor com a porta 9876
-        DatagramSocket serverSocket = new DatagramSocket(9876);
+        serverSocket = new DatagramSocket(9876);
 
         byte[] receiveData = new byte[512];
-        byte[] sendData = new byte[1024];
-        FileOutputStream f1 = new FileOutputStream(new File("fileUDPOut.txt"), true /* append = true */);
+        byte[] sendData = new byte[512];
+
 
 
         while (true) {
-            // declara o pacote a ser recebido
-            DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
-
-            // recebe o pacote do cliente
+            receivePacket = new DatagramPacket(receiveData, receiveData.length);
             serverSocket.receive(receivePacket);
-
-            // pega os dados, o endere�o IP e a porta do cliente
-            // para poder mandar a msg de volta
             String sentence = new String(receivePacket.getData());
             InetAddress IPAddress = receivePacket.getAddress();
             int port = receivePacket.getPort();
 
-            PrintWriter printWriter = new PrintWriter(f1);
-            String s;
-            s = sentence;
 
 
-            // nao sei como fazer aqui
-            s.replaceAll("\\00", "");
-            printWriter.print(s);
-            printWriter.close();
+            escreveArquivo(sentence);
+            sendACK(sentence);
 
 
-            System.out.println("Mensagem recebida: " + sentence);
-
-
-
-            sendData = ("ok"+sentence.charAt(0)+sentence.charAt(1)).getBytes();
-            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
-            serverSocket.send(sendPacket);
-            //serverSocket.close();
         }
+    }
+
+    public static void sendACK(String sentence) throws Exception {
+        char a = sentence.charAt(0);
+        char b = sentence.charAt(1);
+        String s;
+        String o;
+        InetAddress IPAddress = receivePacket.getAddress();
+        int port = receivePacket.getPort();
+
+        short numProx = Short.parseShort(a+""+b);
+        numProx++;
+
+        System.out.println(numProx);
+        byte[] aux2Byte;
+        s= numProx + "";
+        o= ("00"+numProx).substring(s.length());
+        aux2Byte = o.getBytes();
+
+        DatagramPacket sendPacket = new DatagramPacket(aux2Byte, aux2Byte.length, IPAddress, port);
+        serverSocket.send(sendPacket);
+
+    }
+
+    public static void escreveArquivo(String sentence) throws Exception {
+        FileOutputStream f1 = new FileOutputStream(new File("fileUDPOut.txt"), true /* append = true */);
+        PrintWriter printWriter = new PrintWriter(f1);
+        String s;
+        s = sentence;
+        s.replaceAll("\\00", "");
+        printWriter.print(s);
+        printWriter.close();
+
+        System.out.println("Mensagem escrita no file: " + sentence);
     }
 }

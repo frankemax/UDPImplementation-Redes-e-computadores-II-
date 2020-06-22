@@ -38,7 +38,7 @@ public class DataPackage {
         String s = "";
         String a = "";
         int ultimo = 0;
-        int result = data.length +((int)Math.ceil(data.length/512.0)*2);
+        int result = data.length +((int)Math.ceil(data.length/512.0)*10);
         for (int i = 0; i < result ; i++) {
             if(aux==0 || aux==1){
                 a= aux2+"";
@@ -49,6 +49,10 @@ public class DataPackage {
                 //aux2++;
                 aux++;
 
+            }
+            else if(aux > 1 && aux <10){
+                pedaco[aux] =(byte)48;
+                aux++;
             }
             else {
                 pedaco[aux] = this.data[ultimo];
