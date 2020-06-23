@@ -5,14 +5,15 @@
 import java.io.*;
 import java.net.*;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.zip.CRC32;
 
 public class UDPServer {
     private static DatagramPacket receivePacket;
     private static DatagramSocket serverSocket;
-    private static ArrayList<miniDataPackage> splittedData;
+    private static miniDataPackage[] splittedData;
     private static ArrayList<Integer> splittedDataInteger;
-
-    private String lastACK;
+    private static int lastACK;
 
     public static void main(String args[]) throws Exception {
         // cria socket do servidor com a porta 9876
@@ -20,7 +21,6 @@ public class UDPServer {
 
         byte[] receiveData = new byte[512];
         byte[] sendData = new byte[512];
-        miniDataPackage[] splittedData;
         splittedDataInteger = new ArrayList<>();
 
 
@@ -31,11 +31,19 @@ public class UDPServer {
             String sentence = new String(receivePacket.getData());
 
             if (getIndice(sentence) == 1) {
-                splittedData = new miniDataPackage[getTamanho(sentence)];
+                byte[] aux = Arrays.copyOfRange(receivePacket.getData(), 10, 14);
+                splittedData = new miniDataPackage[Integer.parseInt(new String(aux))];
+
             }
 
 
-            //popula(sentence);
+
+
+
+
+
+
+            popula(sentence,receivePacket);
 
             escreveArquivo(sentence);
             sendACK(sentence);
@@ -79,14 +87,40 @@ public class UDPServer {
         System.out.println("Mensagem escrita no file: " + sentence);
     }
 
-    public static void popula(String sentence) {
+
+
+    public static void popula(String sentence,DatagramPacket dp) {
         int posicao = getIndice(sentence);
 
-        splittedData.add(posicao, new miniDataPackage(sentence.getBytes()));
+        if(checkCRC(dp)){
+            splittedData[posicao-1]= new miniDataPackage(getData(sentence).getBytes());
+            System.out.println("CheckCRC true, adicionando pacote no array");
+            System.out.println("posicao " + posicao);
+            System.out.println("dados " + getData(sentence));
+        }
 
-        System.out.println("posicao" + posicao);
+    }
+
+    public static boolean checkCRC(DatagramPacket receivePacket){
+        byte[] packet = receivePacket.getData();
+        byte[] packetOld = Arrays.copyOfRange(packet, 2, 10);
+
+        for (int i = 2; i < 10; i++) {
+            packet[i] =(byte)48;
+        }
 
 
+        CRC32 crc32 = new CRC32();
+        crc32.update(packet,0,packet.length);
+        long old =crc32.getValue();
+
+
+        long old2 = bytesToLong(packetOld,0);
+
+        if (old == old2) {
+            return true;
+        }
+        return false;
     }
 
     public static int getIndice(String sentence) {
@@ -111,14 +145,22 @@ public class UDPServer {
     }
 
     public static String getData(String sentence){
-        return null;
+        return sentence.substring(14,sentence.length());
     }
 
-    public int bytesToInt(byte[] int_bytes) throws IOException {
+    public static int bytesToInt(byte[] int_bytes) throws IOException {
         ByteArrayInputStream bis = new ByteArrayInputStream(int_bytes);
         ObjectInputStream ois = new ObjectInputStream(bis);
         int my_int = ois.readInt();
         ois.close();
         return my_int;
+    }
+    public static long bytesToLong(final byte[] bytes, final int offset) {
+        long result = 0;
+        for (int i = offset; i < Long.BYTES + offset; i++) {
+            result <<= Long.BYTES;
+            result |= (bytes[i] & 0xFF);
+        }
+        return result;
     }
 }

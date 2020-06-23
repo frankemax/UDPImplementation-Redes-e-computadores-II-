@@ -46,7 +46,7 @@ public class DataPackage {
         String a = "";
         int ultimo = 0;
 
-        byte[] totalPackages = intToByteArray(getTotalPackages());
+        byte[] totalPackages = (String.format("%04d",getTotalPackages())).getBytes();
 
 
         int result = data.length +((int)Math.ceil(data.length/512.0)*14);
@@ -54,7 +54,7 @@ public class DataPackage {
             if(aux==0 || aux==1){
                 a= aux2+"";
                 s= ("00"+aux2).substring(a.length());
-                aux2Byte = s.getBytes();
+                aux2Byte = (String.format("%02d",aux2)).getBytes();
                 pedaco[aux] = aux2Byte[aux];
                 aux++;
 
