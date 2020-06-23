@@ -9,9 +9,15 @@ import java.util.ArrayList;
 public class UDPClient {
     private static DatagramSocket clientSocket;
 
+
     public static void main(String args[]) throws Exception {
         readFile("file.txt");
-        sendDataInit();
+        normalSendDataInit();
+
+        int [] ackI = new int [DataPackage.getInstance().getTotalPackages()];
+
+        slowStart(ackI);
+
 
 
     }
@@ -37,14 +43,14 @@ public class UDPClient {
         //envia o pacote
         clientSocket.send(sendPacket);
 
-        String UltimoACK = handleReceive();
+        handleReceive();
 
 
         // fecha o cliente
         clientSocket.close();
     }
 
-    public static void sendDataInit() throws Exception {
+    public static void normalSendDataInit() throws Exception {
         for (int i = 0; i < DataPackage.getInstance().getSplittedData().size(); i++) {
             sendData(DataPackage.getInstance().getSplittedData().get(i).getData());
 
@@ -58,7 +64,6 @@ public class UDPClient {
         String modifiedSentence = new String(receivePacket.getData());
 
         System.out.println("Recebi o ACK:" + modifiedSentence);
-
         return modifiedSentence;
 
     }
@@ -68,9 +73,42 @@ public class UDPClient {
 
     }
 
+    public static void fastRetransmit(byte[] pacote) throws Exception{ //manda imediatamente
+        sendData(pacote);
+    }
+
+    public static void slowStart( int []ackI) throws Exception{
+
+
+        int i=0;
+        int x=0;
+        String ack="";
+
+        while (i<DataPackage.getInstance().getSplittedData().size()){
+
+            for(int y=0; y<ackI.length; y++){
+                if(ackI[i] == 3){
+                    fastRetransmit(DataPackage.getInstance().getSplittedData().get(i).getData()); //manda o pacote que errou 3x
+                    ackI[i]=0;
+                }
+            }
 
 
 
+            for(; x<i; x++){
+                sendData(DataPackage.getInstance().getSplittedData().get(i).getData());
+                ack = handleReceive();
+                int ackNum = Integer.parseInt(ack);
+                ackI[ackNum] = +1;
+            }
+
+            if(i==0){i++;}
+            i=i*2;
+
+        }
+
+
+    }
 
 
 }
