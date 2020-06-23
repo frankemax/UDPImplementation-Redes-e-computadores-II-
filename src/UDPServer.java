@@ -16,12 +16,11 @@ public class UDPServer {
     private static int lastACK;
 
     public static void main(String args[]) throws Exception {
-        // cria socket do servidor com a porta 9876
         serverSocket = new DatagramSocket(9876);
 
         byte[] receiveData = new byte[512];
-        byte[] sendData = new byte[512];
-        splittedDataInteger = new ArrayList<>();
+        lastACK = 1;
+
 
 
         while (true) {
@@ -38,39 +37,53 @@ public class UDPServer {
 
 
 
-
-
-
-
-
             popula(sentence,receivePacket);
 
-            escreveArquivo(sentence);
-            sendACK(sentence);
+            if (lastACK == getIndice(sentence)){
+                refreshLastACK();
+            }
 
+
+            //escreveArquivo(sentence);
+
+
+            if (lastACK == splittedData.length+2){
+                //break;
+            }
+
+            sendACK();
 
         }
     }
 
-    public static void sendACK(String sentence) throws Exception {
+    public static void refreshLastACK(){
+        boolean last = false;
+        for (int i = 0; i < splittedData.length; i++) {
+            if(splittedData[i]==null){
+                lastACK=i+1;
+                break;
+            }
+            if(i == splittedData.length-1){
+                lastACK= splittedData.length+1;
+            }
+        }
+    }
+
+    public static int getACK(String sentence) throws Exception {
         char a = sentence.charAt(0);
         char b = sentence.charAt(1);
-        String s;
-        String o;
-        InetAddress IPAddress = receivePacket.getAddress();
-        int port = receivePacket.getPort();
-
         short numProx = Short.parseShort(a + "" + b);
         numProx++;
+        return numProx;
 
-        System.out.println(numProx);
-        byte[] aux2Byte;
-        s = numProx + "";
-        o = ("00" + numProx).substring(s.length());
-        aux2Byte = o.getBytes();
+    }
 
-
-        DatagramPacket sendPacket = new DatagramPacket(aux2Byte, aux2Byte.length, IPAddress, port);
+    public static void sendACK() throws Exception{
+        InetAddress IPAddress = receivePacket.getAddress();
+        int port = receivePacket.getPort();
+        String s = lastACK+"";
+        byte[] ACKByte = s.getBytes();
+        DatagramPacket sendPacket = new DatagramPacket(ACKByte, ACKByte.length, IPAddress, port);
         serverSocket.send(sendPacket);
 
     }
@@ -97,7 +110,11 @@ public class UDPServer {
             System.out.println("CheckCRC true, adicionando pacote no array");
             System.out.println("posicao " + posicao);
             System.out.println("dados " + getData(sentence));
+
+
         }
+
+
 
     }
 
@@ -155,6 +172,7 @@ public class UDPServer {
         ois.close();
         return my_int;
     }
+
     public static long bytesToLong(final byte[] bytes, final int offset) {
         long result = 0;
         for (int i = offset; i < Long.BYTES + offset; i++) {
@@ -162,5 +180,13 @@ public class UDPServer {
             result |= (bytes[i] & 0xFF);
         }
         return result;
+    }
+
+    public static final byte[] intToByteArray(int value) {
+        return new byte[] {
+                (byte)(value >>> 24),
+                (byte)(value >>> 16),
+                (byte)(value >>> 8),
+                (byte)value};
     }
 }
