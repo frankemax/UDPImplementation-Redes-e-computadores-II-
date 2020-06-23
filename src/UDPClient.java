@@ -87,9 +87,9 @@ public class UDPClient {
         while (i<DataPackage.getInstance().getSplittedData().size()){
 
             for(int y=0; y<ackI.length; y++){
-                if(ackI[i] == 3){
+                if(ackI[y] == 3){
                     fastRetransmit(DataPackage.getInstance().getSplittedData().get(i).getData()); //manda o pacote que errou 3x
-                    ackI[i]=0;
+                    ackI[y]=0;
                 }
             }
 
