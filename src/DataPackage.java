@@ -30,6 +30,12 @@ public class DataPackage {
         this.data = data;
     }
 
+    public int getTotalPackages(){
+        int totalPackages = (int)Math.ceil((data.length)/(498.0));
+
+        return totalPackages;
+    }
+
     public void splitData() {
         ArrayList<miniDataPackage> splittedData = new ArrayList<>();
         byte[] pedaco = new byte[512];
@@ -40,21 +46,25 @@ public class DataPackage {
         String a = "";
         int ultimo = 0;
 
+        byte[] totalPackages = intToByteArray(getTotalPackages());
 
-        int result = data.length +((int)Math.ceil(data.length/512.0)*10);
+
+        int result = data.length +((int)Math.ceil(data.length/512.0)*14);
         for (int i = 0; i < result ; i++) {
             if(aux==0 || aux==1){
                 a= aux2+"";
                 s= ("00"+aux2).substring(a.length());
                 aux2Byte = s.getBytes();
                 pedaco[aux] = aux2Byte[aux];
-
-                //aux2++;
                 aux++;
 
             }
             else if(aux > 1 && aux <10){
                 pedaco[aux] =(byte)48;
+                aux++;
+            }
+            else if(aux >9 && aux<14){
+                pedaco[aux] = totalPackages[aux-10];
                 aux++;
             }
             else {
@@ -96,6 +106,13 @@ public class DataPackage {
             pedaco[i]= longByte[i-2];
         }
 
+        // adiciona o numero de pacotes no package
+        for (int i = 10; i <14 ; i++) {
+            pedaco[i] = totalPackages[i-10];
+        }
+
+
+
 
         splittedData.add(new miniDataPackage(pedaco));
 
@@ -121,6 +138,14 @@ public class DataPackage {
             result |= (bytes[i] & 0xFF);
         }
         return result;
+    }
+
+    public static final byte[] intToByteArray(int value) {
+        return new byte[] {
+                (byte)(value >>> 24),
+                (byte)(value >>> 16),
+                (byte)(value >>> 8),
+                (byte)value};
     }
 
 
