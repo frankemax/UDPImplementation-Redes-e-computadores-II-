@@ -30,6 +30,7 @@ public class DataPackage {
         this.data = data;
     }
 
+
     public int getTotalPackages(){
         int totalPackages = (int)Math.ceil((data.length)/(498.0));
 
@@ -40,7 +41,7 @@ public class DataPackage {
         ArrayList<miniDataPackage> splittedData = new ArrayList<>();
         byte[] pedaco = new byte[512];
         int aux = 0;
-        short aux2= 1;
+        int aux2= 1;
         byte[] aux2Byte;
         String s = "";
         String a = "";
@@ -49,11 +50,10 @@ public class DataPackage {
         byte[] totalPackages = (String.format("%04d",getTotalPackages())).getBytes();
 
 
-        int result = data.length +((int)Math.ceil(data.length/512.0)*14);
+        int result = data.length + 14*getTotalPackages();
+
         for (int i = 0; i < result ; i++) {
             if(aux==0 || aux==1){
-                a= aux2+"";
-                s= ("00"+aux2).substring(a.length());
                 aux2Byte = (String.format("%02d",aux2)).getBytes();
                 pedaco[aux] = aux2Byte[aux];
                 aux++;
