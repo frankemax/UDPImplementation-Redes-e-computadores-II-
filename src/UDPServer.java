@@ -28,6 +28,7 @@ public class UDPServer {
             receivePacket = new DatagramPacket(receiveData, receiveData.length);
             serverSocket.receive(receivePacket);
             String sentence = new String(receivePacket.getData());
+            System.out.println("recebi : " + sentence);
 
             if (getIndice(sentence) == 1) {
                 byte[] aux = Arrays.copyOfRange(receivePacket.getData(), 10, 14);
@@ -36,7 +37,7 @@ public class UDPServer {
             }
 
 
-
+            //System.out.println("chegou o pacote: " + getIndice(sentence));
             popula(sentence,receivePacket);
 
             if (lastACK == getIndice(sentence)){
@@ -44,16 +45,17 @@ public class UDPServer {
             }
 
 
-            //escreveArquivo(sentence);
 
-
-            if (lastACK == splittedData.length+2){
-                //break;
-            }
 
             sendACK();
 
+            if (lastACK == splittedData.length+1){
+                break;
+            }
+
         }
+
+        escreveArquivo();
     }
 
     public static void refreshLastACK(){
@@ -84,33 +86,35 @@ public class UDPServer {
         String s = lastACK+"";
         byte[] ACKByte = s.getBytes();
         DatagramPacket sendPacket = new DatagramPacket(ACKByte, ACKByte.length, IPAddress, port);
+        System.out.println("mandei o ack: " + s);
         serverSocket.send(sendPacket);
 
     }
 
-    public static void escreveArquivo(String sentence) throws Exception {
-        FileOutputStream f1 = new FileOutputStream(new File("fileUDPOut.txt"), true /* append = true */);
+    public static void escreveArquivo() throws Exception {
+        FileOutputStream f1 = new FileOutputStream(new File("fileUDPOut.txt"), false /* append = true */);
         PrintWriter printWriter = new PrintWriter(f1);
-        String s;
-        s = sentence;
-        s.replaceAll("\\00", "");
+        String s="";
+        String a="";
+
+        for (int i = 0; i < splittedData.length; i++) {
+            a= new String(splittedData[i].getData());
+            System.out.println("escrevi: " + a);
+            s=s+ new String(splittedData[i].getData());
+        }
+
         printWriter.print(s);
         printWriter.close();
 
-        System.out.println("Mensagem escrita no file: " + sentence);
     }
-
-
 
     public static void popula(String sentence,DatagramPacket dp) {
         int posicao = getIndice(sentence);
 
         if(checkCRC(dp)){
-            splittedData[posicao-1]= new miniDataPackage(getData(sentence).getBytes());
+            splittedData[posicao-1]= new miniDataPackage(getData(dp.getData()));
             System.out.println("CheckCRC true, adicionando pacote no array");
             System.out.println("posicao " + posicao);
-            System.out.println("dados " + getData(sentence));
-
 
         }
 
@@ -161,8 +165,10 @@ public class UDPServer {
         return tamanho;
     }
 
-    public static String getData(String sentence){
-        return sentence.substring(14,sentence.length());
+    public static byte[] getData(byte[] sentence){
+        byte[] array = Arrays.copyOfRange(sentence,14,sentence.length);
+
+        return array;
     }
 
     public static int bytesToInt(byte[] int_bytes) throws IOException {

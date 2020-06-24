@@ -83,7 +83,9 @@ public class DataPackage {
                         pedaco[j]= longByte[j-2];
                     }
 
+                    System.out.println("pedaco: " + new String(pedaco));
                     splittedData.add(new miniDataPackage(pedaco));
+
                     pedaco = new byte[512];
                     aux = 0;
                     aux2 ++;
@@ -116,7 +118,7 @@ public class DataPackage {
 
         splittedData.add(new miniDataPackage(pedaco));
 
-
+        System.out.println("pedaco: " + new String(pedaco));
 
 
         this.splittedData = splittedData;
