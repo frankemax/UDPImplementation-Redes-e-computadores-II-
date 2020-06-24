@@ -8,58 +8,77 @@ import java.util.Arrays;
 public class UDPClient {
     private static DatagramSocket clientSocket;
     private static int[] ACKArray;
+    private static int lastACKReceived;
 
 
     public static void main(String args[]) throws Exception {
         clientSocket = new DatagramSocket();
         readFile("file.txt");
-
         ACKArray = new int[DataPackage.getInstance().getTotalPackages()];
-        for (int i = 0; i < ACKArray.length; i++) {
-            ACKArray[i] = 0;
-        }
-
         int dobra = 1;
-        int inicia = getLastACK();
-
+        int inicia;
+        lastACKReceived = 1;
 
         while (true) {
-            if (isFull()) {
-                System.out.println("Array de ACKS cheio, encerrando programa");
+            System.out.println("last ack received: " + lastACKReceived);
+
+            if ((lastACKReceived) - 1 == ACKArray.length || lastACKReceived == 00) {
+                System.out.println("Recebi confirmacao que todos os pacotes foram enviados, encerrando programa");
                 break;
             }
+
             if (has3ACKS() != -1) {
+                System.out.println("recebi 3 ACKS: " + has3ACKS() + 1);
+
+                System.out.println("pacArray: ");
+                int count = 2;
+                for (int i : ACKArray) {
+                    System.out.print(count + " | ");
+                    count++;
+                }
+
+                System.out.println("\n ACKArray: ");
+                for (int i : ACKArray) {
+                    System.out.print(i + " | ");
+                }
+
+                inicia = has3ACKS() + 1;
                 dobra = 1;
-                inicia = has3ACKS();
+                ACKArray[has3ACKS()] = 0;
+            } else {
+                System.out.println("Nenhum ACK tem mais que 3 pedidos");
+                inicia = lastACKReceived - 1;
             }
+            System.out.println("\n inicia: " + inicia);
+            System.out.println("dobra: " + dobra);
 
             normalSendDataInit(inicia, dobra);
 
             clientSocket.setSoTimeout(1000);
-            try {
 
-                //System.out.println("console log");
+            System.out.println("===================== ACK ZONE =====================");
+            try {
                 while (true) {
                     //.out.println("dentro do true");
                     handleACK();
                 }
             } catch (Exception e) {
-                System.out.println("Excecao no ack");
+                System.out.println("Excecao no ack, nao consegui capturar o ACK");
             }
 
-            inicia = getLastACK();
-            dobra *= 2;
+            System.out.println("===================== FIM ACK ZONE =====================");
+
+
+            if (dobra * 2 > 60000) {
+                dobra = 60000;
+            } else {
+                dobra *= 2;
+            }
+
+
         }
     }
 
-    public static boolean isFull() {
-        for (int i = 0; i < ACKArray.length; i++) {
-            if (ACKArray[i] == 0) {
-                return false;
-            }
-        }
-        return true;
-    }
 
     public static void readFile(String namefile) throws IOException {
         Path fileLocation = Paths.get(namefile);
@@ -75,8 +94,8 @@ public class UDPClient {
         InetAddress IPAddress = InetAddress.getByName("localhost");
 
         // cria pacote com o dado, o endere�o do server e porta do servidor
-        DatagramPacket sendPacket = new DatagramPacket(data, data.length, IPAddress, 9876);
-        System.out.println("Ta enviando o pacote: " + new String(data));
+        DatagramPacket sendPacket = new DatagramPacket(data, data.length, IPAddress, 9800);
+        System.out.println("Ta enviando o pacote: " + new String(data).substring(0, 2));
 
         //envia o pacote
         clientSocket.send(sendPacket);
@@ -85,12 +104,13 @@ public class UDPClient {
     }
 
     public static void normalSendDataInit(int comeca, int tamanho) throws Exception {
-        for (int i = comeca; i < tamanho; i++) {
+        System.out.println("=============== SEND PACKET ZONE =============== ");
+        for (int i = comeca; i < comeca + tamanho; i++) {
             if (DataPackage.getInstance().getSplittedData().size() > i) {
                 sendData(DataPackage.getInstance().getSplittedData().get(i).getData());
-
             }
         }
+        System.out.println("=============== FIM SEND PACKET ZONE =============== ");
     }
 
     public static void handleACK() throws Exception {
@@ -100,8 +120,8 @@ public class UDPClient {
         clientSocket.receive(receivePacket);
         byte[] array = receivePacket.getData();
 
-        for (int i = 0; i < array.length; i++){
-            if(array[i] == 0){
+        for (int i = 0; i < array.length; i++) {
+            if (array[i] == 0) {
                 array = Arrays.copyOfRange(array, 0, i);
             }
         }
@@ -109,21 +129,18 @@ public class UDPClient {
 
         int pos = Integer.parseInt(new String(array));
         System.out.println("recebendo ack: " + pos);
-        ACKArray[pos - 2] = ACKArray[pos - 2] + 1;
+        if (lastACKReceived < pos) {
+            lastACKReceived = pos;
+        }
+        if (pos == 0) {
+            lastACKReceived = 0;
+        }
+        ACKArray[pos - 2] = (ACKArray[pos - 2]) + 1;
     }
 
     public static int has3ACKS() {
         for (int i = 0; i < ACKArray.length; i++) {
             if (ACKArray[i] >= 3) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    public static int getLastACK() {
-        for (int i = 0; i < ACKArray.length; i++) {
-            if (ACKArray[i] == 0) {
                 return i;
             }
         }

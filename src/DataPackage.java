@@ -43,8 +43,6 @@ public class DataPackage {
         int aux = 0;
         int aux2= 1;
         byte[] aux2Byte;
-        String s = "";
-        String a = "";
         int ultimo = 0;
 
         byte[] totalPackages = (String.format("%04d",getTotalPackages())).getBytes();
