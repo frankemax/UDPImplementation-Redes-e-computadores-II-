@@ -3,6 +3,7 @@ import java.net.*;// DatagramaSocket,InetAddress,DatagramaPacket
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.MessageDigest;
 import java.util.Arrays;
 
 public class UDPClient {
@@ -50,6 +51,18 @@ public class UDPClient {
             inicia = getLastACK();
             dobra *= 2;
         }
+
+        File fileIn = new File("file.txt");
+        File fileOut = new File("fileUDPOut.txt");
+
+        MessageDigest md5 = MessageDigest.getInstance("MD5");
+
+        String in = getFileChecksum(md5, fileIn);
+        String out = getFileChecksum(md5, fileIn);
+
+        if(in.equals(out)){
+            System.out.println("Os arquivos tem o mesmo tamanho");
+        }else System.out.println("Os arquivos tem tamanho diferente");
     }
 
     public static boolean isFull() {
@@ -128,6 +141,37 @@ public class UDPClient {
             }
         }
         return -1;
+    }
+
+    public static String getFileChecksum(MessageDigest digest, File file) throws IOException {
+        //Get file input stream for reading the file content
+        FileInputStream fis = new FileInputStream(file);
+
+        //Create byte array to read data in chunks
+        byte[] byteArray = new byte[1024];
+        int bytesCount = 0;
+
+        //Read file data and update in message digest
+        while ((bytesCount = fis.read(byteArray)) != -1) {
+            digest.update(byteArray, 0, bytesCount);
+        }
+        ;
+
+        //close the stream; We don't need it now.
+        fis.close();
+
+        //Get the hash's bytes
+        byte[] bytes = digest.digest();
+
+        //This bytes[] has bytes in decimal format;
+        //Convert it to hexadecimal format
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < bytes.length; i++) {
+            sb.append(Integer.toString((bytes[i] & 0xff) + 0x100, 16).substring(1));
+        }
+
+        //return complete hash
+        return sb.toString();
     }
 
 }
