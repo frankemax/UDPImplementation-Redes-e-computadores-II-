@@ -58,6 +58,8 @@ public class UDPClient {
 
             System.out.println("===================== ACK ZONE =====================");
             try {
+
+                //System.out.println("console log");
                 while (true) {
                     //.out.println("dentro do true");
                     handleACK();

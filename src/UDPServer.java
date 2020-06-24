@@ -34,24 +34,33 @@ public class UDPServer {
 
             }
 
+
+            //System.out.println("chegou o pacote: " + getIndice(sentence));
             popula(sentence,receivePacket);
 
             if (lastACK == getIndice(sentence)){
                 refreshLastACK();
             }
 
+
+
+
             sendACK();
+
 
             if (lastACK == splittedData.length+1){
                 break;
             }
+
         }
+
 
         closeConnection();
         escreveArquivo();
     }
 
     public static void refreshLastACK(){
+        boolean last = false;
         for (int i = 0; i < splittedData.length; i++) {
             if(splittedData[i]==null){
                 lastACK=i+1;
@@ -80,6 +89,7 @@ public class UDPServer {
         serverSocket.send(sendPacket);
         serverSocket.send(sendPacket);
         serverSocket.send(sendPacket);
+
     }
 
     public static void sendACK() throws Exception{
@@ -90,6 +100,7 @@ public class UDPServer {
         DatagramPacket sendPacket = new DatagramPacket(ACKByte, ACKByte.length, IPAddress, port);
         System.out.println("mandei o ack: " + s);
         serverSocket.send(sendPacket);
+
     }
 
     public static void escreveArquivo() throws Exception {
@@ -99,9 +110,10 @@ public class UDPServer {
         String a="";
 
         for (int i = 0; i < splittedData.length; i++) {
-            a = new String(splittedData[i].getData());
+            a= new String(splittedData[i].getData());
             System.out.println("escrevi: " + a);
-            s = s + new String(splittedData[i].getData());
+            s=s+ new String(splittedData[i].getData());
+
         }
 
         printWriter.print(s);
@@ -116,7 +128,11 @@ public class UDPServer {
             splittedData[posicao-1]= new miniDataPackage(getData(dp.getData()));
             System.out.println("CheckCRC true, adicionando pacote no array");
             System.out.println("posicao " + posicao);
+
         }
+
+
+
     }
 
     public static boolean checkCRC(DatagramPacket receivePacket){
@@ -151,10 +167,29 @@ public class UDPServer {
         return posicao;
     }
 
+    public static int getTamanho(String sentence) {
+
+        String totalString = "";
+        for (int i = 10; i < 14; i++) {
+            char ch = sentence.charAt(i);
+            totalString = totalString.concat(ch+"");
+        }
+        int tamanho = Integer.parseInt(totalString);
+        return tamanho;
+    }
+
     public static byte[] getData(byte[] sentence){
         byte[] array = Arrays.copyOfRange(sentence,14,sentence.length);
 
         return array;
+    }
+
+    public static int bytesToInt(byte[] int_bytes) throws IOException {
+        ByteArrayInputStream bis = new ByteArrayInputStream(int_bytes);
+        ObjectInputStream ois = new ObjectInputStream(bis);
+        int my_int = ois.readInt();
+        ois.close();
+        return my_int;
     }
 
     public static long bytesToLong(final byte[] bytes, final int offset) {
@@ -164,5 +199,13 @@ public class UDPServer {
             result |= (bytes[i] & 0xFF);
         }
         return result;
+    }
+
+    public static final byte[] intToByteArray(int value) {
+        return new byte[] {
+                (byte)(value >>> 24),
+                (byte)(value >>> 16),
+                (byte)(value >>> 8),
+                (byte)value};
     }
 }
