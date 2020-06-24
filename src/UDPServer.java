@@ -97,28 +97,28 @@ public class UDPServer {
         String s="";
         String a="";
 
-        for (int i = 0; i < splittedData.length; i++) {
+        for (int i = 0; i < splittedData.length-1; i++) {
             a= new String(splittedData[i].getData());
             System.out.println("escrevi: " + a);
-            s = s + new String(splittedData[i].getData());
+            s = s + a;
 
         }
 
-        int quebra=0;
+        byte [] array =  splittedData[splittedData.length-1].getData();
 
-        for(int x=0; x<s.length(); x++){
-            char b = s.charAt(x);
-            if (!(b >= 'a' && b <= 'z' || b >= 'A' && b <= 'Z' || b >= '0' && b <= '9')){
-               quebra = x;
-               System.out.println(quebra);
-               break;
+        for(int y=0; y<array.length; y++){
+            if(array[y]==0){
+                array = Arrays.copyOfRange(array,0,y);
+
+                a= new String(array);
+                System.out.println("ultimo: " + a);
+                s = s + a;
+                break;
+
             }
         }
 
-        String teste = s.substring(0, quebra);
-
-
-        printWriter.print(teste);
+        printWriter.print(s);
         printWriter.close();
 
     }
