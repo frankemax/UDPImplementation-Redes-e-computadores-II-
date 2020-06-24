@@ -14,26 +14,31 @@ public class UDPClient {
     public static void main(String args[]) throws Exception {
         clientSocket = new DatagramSocket();
         readFile("file.txt");
+
         ACKArray = new int[DataPackage.getInstance().getTotalPackages()];
+
         int dobra = 1;
-        int inicia;
+        int inicia = 0;
+        int aux=0;
         lastACKReceived = 1;
+
 
         while (true) {
             System.out.println("last ack received: " + lastACKReceived);
+            //System.out.println("array length" + ACKArray.length);
 
-            if ((lastACKReceived) - 1 == ACKArray.length || lastACKReceived == 00) {
+            if ((lastACKReceived) -1 == ACKArray.length || lastACKReceived ==00) {
                 System.out.println("Recebi confirmacao que todos os pacotes foram enviados, encerrando programa");
                 break;
             }
 
             if (has3ACKS() != -1) {
-                System.out.println("recebi 3 ACKS: " + has3ACKS() + 1);
+                System.out.println("recebi 3 ACKS: " + has3ACKS()+1 );
 
                 System.out.println("pacArray: ");
-                int count = 2;
+                int count=2;
                 for (int i : ACKArray) {
-                    System.out.print(count + " | ");
+                    System.out.print(count+  " | ");
                     count++;
                 }
 
@@ -41,11 +46,11 @@ public class UDPClient {
                 for (int i : ACKArray) {
                     System.out.print(i + " | ");
                 }
-
-                inicia = has3ACKS() + 1;
+                inicia = has3ACKS()+1;
                 dobra = 1;
                 ACKArray[has3ACKS()] = 0;
-            } else {
+            }
+            else {
                 System.out.println("Nenhum ACK tem mais que 3 pedidos");
                 inicia = lastACKReceived - 1;
             }
@@ -58,8 +63,6 @@ public class UDPClient {
 
             System.out.println("===================== ACK ZONE =====================");
             try {
-
-                //System.out.println("console log");
                 while (true) {
                     //.out.println("dentro do true");
                     handleACK();
@@ -71,16 +74,22 @@ public class UDPClient {
             System.out.println("===================== FIM ACK ZONE =====================");
 
 
-            if (dobra * 2 > 60000) {
-                dobra = 60000;
-            } else {
-                dobra *= 2;
-            }
+
+            dobra *= 2;
+
 
 
         }
     }
 
+    public static boolean isFull() {
+        for (int i = 0; i < ACKArray.length; i++) {
+            if (ACKArray[i] == 0) {
+                return false;
+            }
+        }
+        return true;
+    }
 
     public static void readFile(String namefile) throws IOException {
         Path fileLocation = Paths.get(namefile);
@@ -107,7 +116,7 @@ public class UDPClient {
 
     public static void normalSendDataInit(int comeca, int tamanho) throws Exception {
         System.out.println("=============== SEND PACKET ZONE =============== ");
-        for (int i = comeca; i < comeca + tamanho; i++) {
+        for (int i = comeca; i < comeca+tamanho; i++) {
             if (DataPackage.getInstance().getSplittedData().size() > i) {
                 sendData(DataPackage.getInstance().getSplittedData().get(i).getData());
             }
@@ -134,7 +143,7 @@ public class UDPClient {
         if (lastACKReceived < pos) {
             lastACKReceived = pos;
         }
-        if (pos == 0) {
+        if (pos ==0){
             lastACKReceived = 0;
         }
         ACKArray[pos - 2] = (ACKArray[pos - 2]) + 1;
@@ -143,6 +152,15 @@ public class UDPClient {
     public static int has3ACKS() {
         for (int i = 0; i < ACKArray.length; i++) {
             if (ACKArray[i] >= 3) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public static int getPosFirstZeroACK() {
+        for (int i = 0; i < ACKArray.length; i++) {
+            if (ACKArray[i] == 0) {
                 return i;
             }
         }
