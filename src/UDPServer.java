@@ -104,14 +104,28 @@ public class UDPServer {
     public static void escreveArquivo() throws Exception {
         FileOutputStream f1 = new FileOutputStream(new File("fileUDPOut.txt"), false /* append = true */);
         PrintWriter printWriter = new PrintWriter(f1);
-        String s = "";
-        String a = "";
+        String s="";
+        String a="";
 
-        for (int i = 0; i < splittedData.length; i++) {
-            a = new String(splittedData[i].getData());
+        for (int i = 0; i < splittedData.length-1; i++) {
+            a= new String(splittedData[i].getData());
             System.out.println("escrevi: " + a);
-            s = s + new String(splittedData[i].getData());
+            s = s + a;
 
+        }
+
+        byte [] array =  splittedData[splittedData.length-1].getData();
+
+        for(int y=0; y<array.length; y++){
+            if(array[y]==0){
+                array = Arrays.copyOfRange(array,0,y);
+
+                a= new String(array);
+                System.out.println("ultimo: " + a);
+                s = s + a;
+                break;
+
+            }
         }
 
         printWriter.print(s);
