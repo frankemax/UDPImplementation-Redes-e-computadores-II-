@@ -31,8 +31,8 @@ public class DataPackage {
     }
 
 
-    public int getTotalPackages(){
-        int totalPackages = (int)Math.ceil((data.length)/(498.0));
+    public int getTotalPackages() {
+        int totalPackages = (int) Math.ceil((data.length) / (498.0));
 
         return totalPackages;
     }
@@ -41,44 +41,41 @@ public class DataPackage {
         ArrayList<miniDataPackage> splittedData = new ArrayList<>();
         byte[] pedaco = new byte[512];
         int aux = 0;
-        int aux2= 1;
+        int aux2 = 1;
         byte[] aux2Byte;
         int ultimo = 0;
 
-        byte[] totalPackages = (String.format("%04d",getTotalPackages())).getBytes();
+        byte[] totalPackages = (String.format("%04d", getTotalPackages())).getBytes();
 
 
-        int result = data.length + 14*getTotalPackages();
+        int result = data.length + 14 * getTotalPackages();
 
-        for (int i = 0; i < result ; i++) {
-            if(aux==0 || aux==1){
-                aux2Byte = (String.format("%02d",aux2)).getBytes();
+        for (int i = 0; i < result; i++) {
+            if (aux == 0 || aux == 1) {
+                aux2Byte = (String.format("%02d", aux2)).getBytes();
                 pedaco[aux] = aux2Byte[aux];
                 aux++;
 
-            }
-            else if(aux > 1 && aux <10){
-                pedaco[aux] =(byte)48;
+            } else if (aux > 1 && aux < 10) {
+                pedaco[aux] = (byte) 48;
                 aux++;
-            }
-            else if(aux >9 && aux<14){
-                pedaco[aux] = totalPackages[aux-10];
+            } else if (aux > 9 && aux < 14) {
+                pedaco[aux] = totalPackages[aux - 10];
                 aux++;
-            }
-            else {
+            } else {
                 pedaco[aux] = this.data[ultimo];
                 ultimo++;
 
-                if (aux==511) {
+                if (aux == 511) {
 
                     // adiciona o crc no package
                     CRC32 crc32 = new CRC32();
-                    crc32.update(pedaco,0,pedaco.length);
+                    crc32.update(pedaco, 0, pedaco.length);
                     long crc32Long = crc32.getValue();
                     byte[] longByte;
-                    longByte= longToBytes(crc32Long);
-                    for (int j =2; j<10; j++){
-                        pedaco[j]= longByte[j-2];
+                    longByte = longToBytes(crc32Long);
+                    for (int j = 2; j < 10; j++) {
+                        pedaco[j] = longByte[j - 2];
                     }
 
                     System.out.println("pedaco: " + new String(pedaco));
@@ -86,9 +83,8 @@ public class DataPackage {
 
                     pedaco = new byte[512];
                     aux = 0;
-                    aux2 ++;
-                }
-                else{
+                    aux2++;
+                } else {
                     aux++;
                 }
 
@@ -98,20 +94,18 @@ public class DataPackage {
 
         // adiciona o crc no package
         CRC32 crc32 = new CRC32();
-        crc32.update(pedaco,0,pedaco.length);
+        crc32.update(pedaco, 0, pedaco.length);
         long crc32Long = crc32.getValue();
         byte[] longByte;
-        longByte= longToBytes(crc32Long);
-        for (int i =2; i<10; i++){
-            pedaco[i]= longByte[i-2];
+        longByte = longToBytes(crc32Long);
+        for (int i = 2; i < 10; i++) {
+            pedaco[i] = longByte[i - 2];
         }
 
         // adiciona o numero de pacotes no package
-        for (int i = 10; i <14 ; i++) {
-            pedaco[i] = totalPackages[i-10];
+        for (int i = 10; i < 14; i++) {
+            pedaco[i] = totalPackages[i - 10];
         }
-
-
 
 
         splittedData.add(new miniDataPackage(pedaco));
@@ -125,7 +119,7 @@ public class DataPackage {
     public static byte[] longToBytes(long l) {
         byte[] result = new byte[8];
         for (int i = 7; i >= 0; i--) {
-            result[i] = (byte)(l & 0xFF);
+            result[i] = (byte) (l & 0xFF);
             l >>= 8;
         }
         return result;
@@ -141,14 +135,12 @@ public class DataPackage {
     }
 
     public static final byte[] intToByteArray(int value) {
-        return new byte[] {
-                (byte)(value >>> 24),
-                (byte)(value >>> 16),
-                (byte)(value >>> 8),
-                (byte)value};
+        return new byte[]{
+                (byte) (value >>> 24),
+                (byte) (value >>> 16),
+                (byte) (value >>> 8),
+                (byte) value};
     }
-
-
 
 
 }

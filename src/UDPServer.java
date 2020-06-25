@@ -20,7 +20,7 @@ public class UDPServer {
 
         byte[] receiveData = new byte[512];
         lastACK = 1;
-
+        boolean primeiro = true;
         while (true) {
 
             receivePacket = new DatagramPacket(receiveData, receiveData.length);
@@ -28,27 +28,25 @@ public class UDPServer {
             String sentence = new String(receivePacket.getData());
             System.out.println("recebi : " + sentence);
 
-            if (getIndice(sentence) == 1) {
+            if (primeiro) {
                 byte[] aux = Arrays.copyOfRange(receivePacket.getData(), 10, 14);
                 splittedData = new miniDataPackage[Integer.parseInt(new String(aux))];
-
+                primeiro = false;
             }
 
 
             //System.out.println("chegou o pacote: " + getIndice(sentence));
-            popula(sentence,receivePacket);
+            popula(sentence, receivePacket);
 
-            if (lastACK == getIndice(sentence)){
+            if (lastACK == getIndice(sentence)) {
                 refreshLastACK();
             }
-
-
 
 
             sendACK();
 
 
-            if (lastACK == splittedData.length+1){
+            if (lastACK == splittedData.length + 1) {
                 break;
             }
 
@@ -59,15 +57,15 @@ public class UDPServer {
         escreveArquivo();
     }
 
-    public static void refreshLastACK(){
+    public static void refreshLastACK() {
         boolean last = false;
         for (int i = 0; i < splittedData.length; i++) {
-            if(splittedData[i]==null){
-                lastACK=i+1;
+            if (splittedData[i] == null) {
+                lastACK = i + 1;
                 break;
             }
-            if(i == splittedData.length-1){
-                lastACK= splittedData.length+1;
+            if (i == splittedData.length - 1) {
+                lastACK = splittedData.length + 1;
             }
         }
     }
@@ -92,10 +90,10 @@ public class UDPServer {
 
     }
 
-    public static void sendACK() throws Exception{
+    public static void sendACK() throws Exception {
         InetAddress IPAddress = receivePacket.getAddress();
         int port = receivePacket.getPort();
-        String s = lastACK+"";
+        String s = lastACK + "";
         byte[] ACKByte = s.getBytes();
         DatagramPacket sendPacket = new DatagramPacket(ACKByte, ACKByte.length, IPAddress, port);
         System.out.println("mandei o ack: " + s);
@@ -106,13 +104,13 @@ public class UDPServer {
     public static void escreveArquivo() throws Exception {
         FileOutputStream f1 = new FileOutputStream(new File("fileUDPOut.txt"), false /* append = true */);
         PrintWriter printWriter = new PrintWriter(f1);
-        String s="";
-        String a="";
+        String s = "";
+        String a = "";
 
         for (int i = 0; i < splittedData.length; i++) {
-            a= new String(splittedData[i].getData());
+            a = new String(splittedData[i].getData());
             System.out.println("escrevi: " + a);
-            s=s+ new String(splittedData[i].getData());
+            s = s + new String(splittedData[i].getData());
 
         }
 
@@ -121,35 +119,34 @@ public class UDPServer {
 
     }
 
-    public static void popula(String sentence,DatagramPacket dp) {
+    public static void popula(String sentence, DatagramPacket dp) {
         int posicao = getIndice(sentence);
 
-        if(checkCRC(dp)){
-            splittedData[posicao-1]= new miniDataPackage(getData(dp.getData()));
+        if (checkCRC(dp)) {
+            splittedData[posicao - 1] = new miniDataPackage(getData(dp.getData()));
             System.out.println("CheckCRC true, adicionando pacote no array");
             System.out.println("posicao " + posicao);
 
         }
 
 
-
     }
 
-    public static boolean checkCRC(DatagramPacket receivePacket){
+    public static boolean checkCRC(DatagramPacket receivePacket) {
         byte[] packet = receivePacket.getData();
         byte[] packetOld = Arrays.copyOfRange(packet, 2, 10);
 
         for (int i = 2; i < 10; i++) {
-            packet[i] =(byte)48;
+            packet[i] = (byte) 48;
         }
 
 
         CRC32 crc32 = new CRC32();
-        crc32.update(packet,0,packet.length);
-        long old =crc32.getValue();
+        crc32.update(packet, 0, packet.length);
+        long old = crc32.getValue();
 
 
-        long old2 = bytesToLong(packetOld,0);
+        long old2 = bytesToLong(packetOld, 0);
 
         if (old == old2) {
             return true;
@@ -172,14 +169,14 @@ public class UDPServer {
         String totalString = "";
         for (int i = 10; i < 14; i++) {
             char ch = sentence.charAt(i);
-            totalString = totalString.concat(ch+"");
+            totalString = totalString.concat(ch + "");
         }
         int tamanho = Integer.parseInt(totalString);
         return tamanho;
     }
 
-    public static byte[] getData(byte[] sentence){
-        byte[] array = Arrays.copyOfRange(sentence,14,sentence.length);
+    public static byte[] getData(byte[] sentence) {
+        byte[] array = Arrays.copyOfRange(sentence, 14, sentence.length);
 
         return array;
     }
@@ -202,10 +199,10 @@ public class UDPServer {
     }
 
     public static final byte[] intToByteArray(int value) {
-        return new byte[] {
-                (byte)(value >>> 24),
-                (byte)(value >>> 16),
-                (byte)(value >>> 8),
-                (byte)value};
+        return new byte[]{
+                (byte) (value >>> 24),
+                (byte) (value >>> 16),
+                (byte) (value >>> 8),
+                (byte) value};
     }
 }
