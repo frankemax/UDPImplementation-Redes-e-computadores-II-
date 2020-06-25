@@ -37,19 +37,22 @@ public class DataPackage {
         return totalPackages;
     }
 
+    /*divide o file em pacotes de 512, sendo:
+    0-1 Bytes: indice do pacote
+    2-9 Bytes: guarda o CRC do pacote, que é um long (é calculado depois do pacote estar pronto)
+    10-14 Bytes: guarda o número total de packages.
+    15-512 Bytes: data
+
+     */
     public void splitData() {
         ArrayList<miniDataPackage> splittedData = new ArrayList<>();
         byte[] pedaco = new byte[512];
         int aux = 0;
         int aux2= 1;
         byte[] aux2Byte;
-        String s = "";
-        String a = "";
         int ultimo = 0;
 
         byte[] totalPackages = (String.format("%04d",getTotalPackages())).getBytes();
-
-
         int result = data.length + 14*getTotalPackages();
 
         for (int i = 0; i < result ; i++) {
@@ -113,13 +116,8 @@ public class DataPackage {
             pedaco[i] = totalPackages[i-10];
         }
 
-
-
-
         splittedData.add(new miniDataPackage(pedaco));
-
         System.out.println("pedaco: " + new String(pedaco));
-
 
         this.splittedData = splittedData;
     }
@@ -132,25 +130,5 @@ public class DataPackage {
         }
         return result;
     }
-
-    public static long bytesToLong(final byte[] bytes, final int offset) {
-        long result = 0;
-        for (int i = offset; i < Long.BYTES + offset; i++) {
-            result <<= Long.BYTES;
-            result |= (bytes[i] & 0xFF);
-        }
-        return result;
-    }
-
-    public static final byte[] intToByteArray(int value) {
-        return new byte[] {
-                (byte)(value >>> 24),
-                (byte)(value >>> 16),
-                (byte)(value >>> 8),
-                (byte)value};
-    }
-
-
-
 
 }
