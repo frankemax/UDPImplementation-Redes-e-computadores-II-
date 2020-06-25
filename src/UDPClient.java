@@ -74,11 +74,7 @@ public class UDPClient {
 
 
             dobra *= 2;
-
-
         }
-
-
     }
 
     public static void readFile(String namefile) throws IOException {
