@@ -45,7 +45,7 @@ public class DataPackage {
         ArrayList<miniDataPackage> splittedData = new ArrayList<>();
         byte[] pedaco = new byte[512];
         int aux = 0;
-        int aux2 = 1;
+        short aux2 = 1;
         byte[] aux2Byte;
         int ultimo = 0;
 
@@ -56,7 +56,7 @@ public class DataPackage {
 
             //adiciona o indice do pacote
             if (aux == 0 || aux == 1) {
-                aux2Byte = (String.format("%02d", aux2)).getBytes();
+                aux2Byte = shortToBytes(aux2);
                 pedaco[aux] = aux2Byte[aux];
                 aux++;
             }
@@ -126,6 +126,13 @@ public class DataPackage {
             l >>= 8;
         }
         return result;
+    }
+
+    public byte[] shortToBytes(short value) {
+        byte[] returnByteArray = new byte[2];
+        returnByteArray[0] = (byte) (value & 0xff);
+        returnByteArray[1] = (byte) ((value >>> 8) & 0xff);
+        return returnByteArray;
     }
 
 }

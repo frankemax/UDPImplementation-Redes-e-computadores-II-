@@ -1,9 +1,10 @@
 import java.io.*; // classes para input e output streams e
 import java.net.*;// DatagramaSocket,InetAddress,DatagramaPacket
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.MessageDigest;
 import java.util.Arrays;
 
 public class UDPClient {
@@ -19,8 +20,7 @@ public class UDPClient {
         ACKArray = new int[DataPackage.getInstance().getTotalPackages()];
 
         int dobra = 1;
-        int inicia = 0;
-        int aux = 0;
+        int inicia;
         lastACKReceived = 1;
 
 
@@ -64,7 +64,6 @@ public class UDPClient {
             System.out.println("===================== ACK ZONE =====================");
             try {
                 while (true) {
-                    //.out.println("dentro do true");
                     handleACK();
                 }
             } catch (Exception e) {
@@ -82,15 +81,6 @@ public class UDPClient {
 
     }
 
-    public static boolean isFull() {
-        for (int i = 0; i < ACKArray.length; i++) {
-            if (ACKArray[i] == 0) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     public static void readFile(String namefile) throws IOException {
         Path fileLocation = Paths.get(namefile);
         DataPackage.getInstance().setData(Files.readAllBytes(fileLocation));
@@ -99,14 +89,13 @@ public class UDPClient {
     }
 
     public static void sendData(byte[] data) throws Exception {
-
-
         // obtem endere�o IP do servidor com o DNS
         InetAddress IPAddress = InetAddress.getByName("localhost");
 
         // cria pacote com o dado, o endere�o do server e porta do servidor
         DatagramPacket sendPacket = new DatagramPacket(data, data.length, IPAddress, 9800);
-        System.out.println("Ta enviando o pacote: " + new String(data).substring(0, 2));
+
+        System.out.println("Ta enviando o pacote: " + bytesToShort(new byte[]{data[0],data[1]}));
 
         //envia o pacote
         clientSocket.send(sendPacket);
@@ -158,15 +147,7 @@ public class UDPClient {
         return -1;
     }
 
-    public static int getPosFirstZeroACK() {
-        for (int i = 0; i < ACKArray.length; i++) {
-            if (ACKArray[i] == 0) {
-                return i;
-            }
-        }
-        return -1;
+    public static short bytesToShort(byte[] bytes) {
+        return ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).getShort();
     }
-
-
-
 }

@@ -1,12 +1,8 @@
-// Recebe um pacote de algum cliente
-// Separa o dado, o endere�o IP e a porta deste cliente
-// Imprime o dado na tela
-
 import java.io.*;
 import java.net.*;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.zip.CRC32;
 
@@ -26,8 +22,6 @@ public class UDPServer {
         while (true) {
             receivePacket = new DatagramPacket(receiveData, receiveData.length);
             serverSocket.receive(receivePacket);
-            String sentence = new String(receivePacket.getData());
-
 
             //quando o primeiro pacote chegar, instancia as estruturas necessárias
             if (primeiro) {
@@ -35,22 +29,18 @@ public class UDPServer {
                 splittedData = new miniDataPackage[Integer.parseInt(new String(aux))];
                 primeiro = false;
             }
-
-
-            System.out.println("Recebi o pacote: " + getIndice(sentence));
+            System.out.println("Recebi o pacote: " + getIndice(receivePacket.getData()));
 
             //adiciona o package, se o crc for correto
-            popula(sentence, receivePacket);
+            popula(receivePacket);
 
             //se o pacote que eu recebi é o ACK que enviei, entao atualizo o ACK a ser enviado.
-            if (lastACK == getIndice(sentence)) {
+            if (lastACK == getIndice(receivePacket.getData())) {
                 refreshLastACK();
             }
 
-
             //mando o ACK
             sendACK();
-
 
             //se o ACK que eu enviei foi o ultimo pacote +1, encerra a conexão
             if (lastACK == splittedData.length + 1) {
@@ -80,9 +70,9 @@ public class UDPServer {
         String in = getFileChecksum(md5, fileIn);
         String out = getFileChecksum(md5, fileOut);
 
-        if(in.equals(out)){
+        if (in.equals(out)) {
             System.out.println("Os arquivos são iguais");
-        }else System.out.println("Os arquivos são diferentes");
+        } else System.out.println("Os arquivos são diferentes");
     }
 
     //atualizo o LastACK com o primeiro pacote que eu não possuo
@@ -135,23 +125,23 @@ public class UDPServer {
     public static void escreveArquivo() throws Exception {
         FileOutputStream f1 = new FileOutputStream(new File("fileUDPOut.txt"), false /* append = true */);
         PrintWriter printWriter = new PrintWriter(f1);
-        String s="";
-        String a="";
+        String s = "";
+        String a = "";
 
-        for (int i = 0; i < splittedData.length-1; i++) {
-            a= new String(splittedData[i].getData());
+        for (int i = 0; i < splittedData.length - 1; i++) {
+            a = new String(splittedData[i].getData());
             System.out.println("escrevi: " + a);
             s = s + a;
 
         }
 
-        byte [] array =  splittedData[splittedData.length-1].getData();
+        byte[] array = splittedData[splittedData.length - 1].getData();
 
-        for(int y=0; y<array.length; y++){
-            if(array[y]==0){
-                array = Arrays.copyOfRange(array,0,y);
+        for (int y = 0; y < array.length; y++) {
+            if (array[y] == 0) {
+                array = Arrays.copyOfRange(array, 0, y);
 
-                a= new String(array);
+                a = new String(array);
                 System.out.println("ultimo: " + a);
                 s = s + a;
                 break;
@@ -165,8 +155,8 @@ public class UDPServer {
     }
 
     //adiciona o pacote no vetor de dados
-    public static void popula(String sentence, DatagramPacket dp) {
-        int posicao = getIndice(sentence);
+    public static void popula(DatagramPacket dp) {
+        int posicao = getIndice(dp.getData());
 
         if (checkCRC(dp)) {
             splittedData[posicao - 1] = new miniDataPackage(getData(dp.getData()));
@@ -195,14 +185,10 @@ public class UDPServer {
         return false;
     }
 
-    public static int getIndice(String sentence) {
-        char a = sentence.charAt(0);
-        char b = sentence.charAt(1);
-        String index = "";
-        index = index.concat(a + "").concat(b + "");
+    public static int getIndice(byte[] data) {
+        short index = bytesToShort(new byte[]{data[0], data[1]});
 
-        int posicao = Integer.parseInt(index);
-        return posicao;
+        return index;
     }
 
     public static byte[] getData(byte[] sentence) {
@@ -249,5 +235,9 @@ public class UDPServer {
 
         //return complete hash
         return sb.toString();
+    }
+
+    public static short bytesToShort(byte[] bytes) {
+        return ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).getShort();
     }
 }
