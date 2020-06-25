@@ -75,11 +75,7 @@ public class UDPClient {
 
 
             dobra *= 2;
-
-
         }
-
-
     }
 
     public static boolean isFull() {
