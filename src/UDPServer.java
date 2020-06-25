@@ -14,7 +14,6 @@ public class UDPServer {
     private static DatagramPacket receivePacket;
     private static DatagramSocket serverSocket;
     private static miniDataPackage[] splittedData;
-    private static ArrayList<Integer> splittedDataInteger;
     private static int lastACK;
 
     public static void main(String args[]) throws Exception {
@@ -23,13 +22,14 @@ public class UDPServer {
         byte[] receiveData = new byte[512];
         lastACK = 1;
         boolean primeiro = true;
-        while (true) {
 
+        while (true) {
             receivePacket = new DatagramPacket(receiveData, receiveData.length);
             serverSocket.receive(receivePacket);
             String sentence = new String(receivePacket.getData());
-            System.out.println("recebi : " + sentence);
 
+
+            //quando o primeiro pacote chegar, instancia as estruturas necessárias
             if (primeiro) {
                 byte[] aux = Arrays.copyOfRange(receivePacket.getData(), 10, 14);
                 splittedData = new miniDataPackage[Integer.parseInt(new String(aux))];
@@ -37,17 +37,22 @@ public class UDPServer {
             }
 
 
-            //System.out.println("chegou o pacote: " + getIndice(sentence));
+            System.out.println("Recebi o pacote: " + getIndice(sentence));
+
+            //adiciona o package, se o crc for correto
             popula(sentence, receivePacket);
 
+            //se o pacote que eu recebi é o ACK que enviei, entao atualizo o ACK a ser enviado.
             if (lastACK == getIndice(sentence)) {
                 refreshLastACK();
             }
 
 
+            //mando o ACK
             sendACK();
 
 
+            //se o ACK que eu enviei foi o ultimo pacote +1, encerra a conexão
             if (lastACK == splittedData.length + 1) {
                 break;
             }
@@ -55,8 +60,13 @@ public class UDPServer {
         }
 
 
+        //se o ACK que eu enviei o de encerrar conexão (00): encerra a conexão
         closeConnection();
+
+        //escreve um arquivo com os dados recebidos
         escreveArquivo();
+
+        //verifica se o arquivo recebido é igual ao arquivo que foi enviado
         checaArquivo();
 
     }
@@ -71,10 +81,11 @@ public class UDPServer {
         String out = getFileChecksum(md5, fileOut);
 
         if(in.equals(out)){
-            System.out.println("Os arquivos tem o mesmo tamanho");
-        }else System.out.println("Os arquivos tem tamanho diferente");
+            System.out.println("Os arquivos são iguais");
+        }else System.out.println("Os arquivos são diferentes");
     }
 
+    //atualizo o LastACK com o primeiro pacote que eu não possuo
     public static void refreshLastACK() {
         for (int i = 0; i < splittedData.length; i++) {
             if (splittedData[i] == null) {
@@ -87,6 +98,7 @@ public class UDPServer {
         }
     }
 
+    //bombardeia o cliente com mensagens de encerrar conexão
     public static void closeConnection() throws Exception {
         InetAddress IPAddress = receivePacket.getAddress();
         int port = receivePacket.getPort();
@@ -107,6 +119,7 @@ public class UDPServer {
 
     }
 
+
     public static void sendACK() throws Exception {
         InetAddress IPAddress = receivePacket.getAddress();
         int port = receivePacket.getPort();
@@ -118,6 +131,7 @@ public class UDPServer {
 
     }
 
+    //percorre o vetor dos pacotes que eu recebi e escreve no arquivo
     public static void escreveArquivo() throws Exception {
         FileOutputStream f1 = new FileOutputStream(new File("fileUDPOut.txt"), false /* append = true */);
         PrintWriter printWriter = new PrintWriter(f1);
@@ -150,6 +164,7 @@ public class UDPServer {
 
     }
 
+    //adiciona o pacote no vetor de dados
     public static void popula(String sentence, DatagramPacket dp) {
         int posicao = getIndice(sentence);
 
@@ -159,10 +174,9 @@ public class UDPServer {
             System.out.println("posicao " + posicao);
 
         }
-
-
     }
 
+    //verifica o crc de cada pacote
     public static boolean checkCRC(DatagramPacket receivePacket) {
         byte[] packet = receivePacket.getData();
         byte[] packetOld = Arrays.copyOfRange(packet, 2, 10);
@@ -171,14 +185,10 @@ public class UDPServer {
             packet[i] = (byte) 48;
         }
 
-
         CRC32 crc32 = new CRC32();
         crc32.update(packet, 0, packet.length);
         long old = crc32.getValue();
-
-
         long old2 = bytesToLong(packetOld, 0);
-
         if (old == old2) {
             return true;
         }
@@ -195,29 +205,10 @@ public class UDPServer {
         return posicao;
     }
 
-    public static int getTamanho(String sentence) {
-
-        String totalString = "";
-        for (int i = 10; i < 14; i++) {
-            char ch = sentence.charAt(i);
-            totalString = totalString.concat(ch + "");
-        }
-        int tamanho = Integer.parseInt(totalString);
-        return tamanho;
-    }
-
     public static byte[] getData(byte[] sentence) {
         byte[] array = Arrays.copyOfRange(sentence, 14, sentence.length);
 
         return array;
-    }
-
-    public static int bytesToInt(byte[] int_bytes) throws IOException {
-        ByteArrayInputStream bis = new ByteArrayInputStream(int_bytes);
-        ObjectInputStream ois = new ObjectInputStream(bis);
-        int my_int = ois.readInt();
-        ois.close();
-        return my_int;
     }
 
     public static long bytesToLong(final byte[] bytes, final int offset) {
@@ -229,13 +220,6 @@ public class UDPServer {
         return result;
     }
 
-    public static final byte[] intToByteArray(int value) {
-        return new byte[]{
-                (byte) (value >>> 24),
-                (byte) (value >>> 16),
-                (byte) (value >>> 8),
-                (byte) value};
-    }
     public static String getFileChecksum(MessageDigest digest, File file) throws IOException {
         FileInputStream fis = new FileInputStream(file);
 
