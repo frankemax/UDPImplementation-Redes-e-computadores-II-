@@ -46,6 +46,7 @@ public class UDPServer {
             if (lastACK == splittedData.length + 1) {
                 break;
             }
+            System.out.println("===============");
 
         }
 
@@ -161,7 +162,6 @@ public class UDPServer {
         if (checkCRC(dp)) {
             splittedData[posicao - 1] = new miniDataPackage(getData(dp.getData()));
             System.out.println("CheckCRC true, adicionando pacote no array");
-            System.out.println("posicao " + posicao);
 
         }
     }

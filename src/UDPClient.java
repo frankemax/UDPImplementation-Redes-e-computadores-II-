@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Scanner;
 
 public class UDPClient {
     private static DatagramSocket clientSocket;
@@ -13,9 +14,12 @@ public class UDPClient {
     private static int lastACKReceived;
 
 
+
     public static void main(String args[]) throws Exception {
         clientSocket = new DatagramSocket();
-        readFile("file.txt");
+        Scanner sc= new Scanner(System.in);
+
+        readFile(sc.nextLine());
 
         ACKArray = new int[DataPackage.getInstance().getTotalPackages()];
 
@@ -34,7 +38,7 @@ public class UDPClient {
             }
 
             if (has3ACKS() != -1) {
-                System.out.println("recebi 3 ACKS: " + has3ACKS() + 1);
+                System.out.println("recebi 3 ACKS ");
 
                 System.out.println("pacArray: ");
                 int count = 2;
