@@ -65,10 +65,11 @@ public class UDPClient {
             //manda o pacote
             normalSendDataInit(inicia, dobra);
 
-            clientSocket.setSoTimeout(1000);
+
 
             System.out.println("===================== ACK ZONE =====================");
             try {
+                clientSocket.setSoTimeout(1000);
                 while (true) {
                     handleACK();
                 }
@@ -97,13 +98,10 @@ public class UDPClient {
 
         // cria pacote com o dado, o endere�o do server e porta do servidor
         DatagramPacket sendPacket = new DatagramPacket(data, data.length, IPAddress, 9800);
-
         System.out.println("Ta enviando o pacote: " + bytesToShort(new byte[]{data[0],data[1]}));
 
         //envia o pacote
         clientSocket.send(sendPacket);
-
-
     }
 
     //slowStart
