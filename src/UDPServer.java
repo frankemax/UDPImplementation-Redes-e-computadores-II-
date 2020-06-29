@@ -19,6 +19,7 @@ public class UDPServer {
         lastACK = 1;
         boolean primeiro = true;
 
+        //fica "escutando" até receber todos os pacotes necessarios
         while (true) {
             receivePacket = new DatagramPacket(receiveData, receiveData.length);
             serverSocket.receive(receivePacket);
@@ -62,6 +63,7 @@ public class UDPServer {
 
     }
 
+    //verifica se os arquivos sao iguais ou diferentes
     public static void checaArquivo() throws Exception {
         File fileIn = new File("file.txt");
         File fileOut = new File("fileUDPOut.txt");
@@ -110,7 +112,7 @@ public class UDPServer {
 
     }
 
-
+    //manda o ack atual
     public static void sendACK() throws Exception {
         InetAddress IPAddress = receivePacket.getAddress();
         int port = receivePacket.getPort();
@@ -158,7 +160,7 @@ public class UDPServer {
     //adiciona o pacote no vetor de dados
     public static void popula(DatagramPacket dp) {
         int posicao = getIndice(dp.getData());
-
+        //se o crc foi correto:
         if (checkCRC(dp)) {
             splittedData[posicao - 1] = new miniDataPackage(getData(dp.getData()));
             System.out.println("CheckCRC true, adicionando pacote no array");
@@ -191,6 +193,7 @@ public class UDPServer {
         return index;
     }
 
+    //retorna a parte do pacote que contem a data
     public static byte[] getData(byte[] sentence) {
         byte[] array = Arrays.copyOfRange(sentence, 14, sentence.length);
 

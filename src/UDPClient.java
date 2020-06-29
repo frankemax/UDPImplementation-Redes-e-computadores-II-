@@ -19,6 +19,7 @@ public class UDPClient {
         clientSocket = new DatagramSocket();
         Scanner sc= new Scanner(System.in);
 
+        //le o arquivo e armazena na estrutura criada
         readFile(sc.nextLine());
 
         ACKArray = new int[DataPackage.getInstance().getTotalPackages()];
@@ -27,16 +28,16 @@ public class UDPClient {
         int inicia;
         lastACKReceived = 1;
 
-
+        //fica "escutando" até enviar todos os pacotes requisitados
         while (true) {
             System.out.println("last ack received: " + lastACKReceived);
-            //System.out.println("array length" + ACKArray.length);
 
             if ((lastACKReceived) - 1 == ACKArray.length || lastACKReceived == 00) {
                 System.out.println("Recebi confirmacao que todos os pacotes foram enviados, encerrando programa");
                 break;
             }
 
+            //se algum pacote recebeu mais de 3 acks, troca o inicio para a posicao do ACK com +3 pedidos e o multiplicador para 1
             if (has3ACKS() != -1) {
                 System.out.println("recebi 3 ACKS ");
 
@@ -61,6 +62,7 @@ public class UDPClient {
             System.out.println("\n inicia: " + inicia);
             System.out.println("dobra: " + dobra);
 
+            //manda o pacote
             normalSendDataInit(inicia, dobra);
 
             clientSocket.setSoTimeout(1000);
@@ -76,7 +78,7 @@ public class UDPClient {
 
             System.out.println("===================== FIM ACK ZONE =====================");
 
-
+            //modifica o multiplicador
             dobra *= 2;
         }
     }
@@ -88,6 +90,7 @@ public class UDPClient {
 
     }
 
+    //metodo utilizado pelo slow start
     public static void sendData(byte[] data) throws Exception {
         // obtem endere�o IP do servidor com o DNS
         InetAddress IPAddress = InetAddress.getByName("localhost");
@@ -103,6 +106,7 @@ public class UDPClient {
 
     }
 
+    //slowStart
     public static void normalSendDataInit(int comeca, int tamanho) throws Exception {
         System.out.println("=============== SEND PACKET ZONE =============== ");
         for (int i = comeca; i < comeca + tamanho; i++) {
@@ -113,6 +117,7 @@ public class UDPClient {
         System.out.println("=============== FIM SEND PACKET ZONE =============== ");
     }
 
+    //recebe o ACK e armazena no array somando +1
     public static void handleACK() throws Exception {
         byte[] receiveData = new byte[512];
 
@@ -125,8 +130,6 @@ public class UDPClient {
                 array = Arrays.copyOfRange(array, 0, i);
             }
         }
-
-
         int pos = Integer.parseInt(new String(array));
         System.out.println("recebendo ack: " + pos);
         if (lastACKReceived < pos) {
@@ -138,6 +141,7 @@ public class UDPClient {
         ACKArray[pos - 2] = (ACKArray[pos - 2]) + 1;
     }
 
+    //retorna a posicao com +3 ACKS
     public static int has3ACKS() {
         for (int i = 0; i < ACKArray.length; i++) {
             if (ACKArray[i] >= 3) {
